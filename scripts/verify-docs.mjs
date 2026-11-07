@@ -74,18 +74,38 @@ for (const file of files) {
   });
 }
 
+const tryPage = resolve(root, 'src/pages/try.astro');
+
 check('侧栏条目都有对应页面', () => {
   const links = [...config.matchAll(/\{\s*label:\s*'[^']+',\s*link:\s*'([^']+)'\s*\}/g)]
     .map((m) => m[1]);
   assert(links.length >= 10, `侧栏条目过少：${links.length}`);
   for (const href of links) {
+    if (href === '/try/') {
+      assert(existsSync(tryPage), '/try/ 找不到 src/pages/try.astro');
+      continue;
+    }
     const name = href === '/' ? 'index.md' : `${href.replace(/^\/|\/$/g, '')}.md`;
     assert(existsSync(resolve(docsDir, name)), `${href} 找不到 ${name}`);
   }
-  const listed = new Set(links.map((href) =>
-    href === '/' ? 'index.md' : `${href.replace(/^\/|\/$/g, '')}.md`));
+  const listed = new Set(links
+    .filter((href) => href !== '/try/')
+    .map((href) => href === '/' ? 'index.md' : `${href.replace(/^\/|\/$/g, '')}.md`));
   const orphans = files.filter((f) => f !== '404.md' && !listed.has(f));
   assert(!orphans.length, `未列入侧栏的页面：${orphans.join(' ')}`);
+});
+
+check('在线尝试页面', () => {
+  assert(existsSync(tryPage), '缺少 src/pages/try.astro');
+  const text = readFileSync(tryPage, 'utf8');
+  assert(/import '\.\.\/scripts\/dsnext-try\/main\.js'/.test(text), '没有引入在线尝试控制器');
+  assert(!/·/.test(text), '在线尝试页面出现中点');
+  assert(!BANNED[1].re.test(text), '在线尝试页面出现报告体');
+  assert(!BANNED[2].re.test(text), '在线尝试页面出现职责划分句');
+  const pkg = readFileSync(resolve(root, 'package.json'), 'utf8');
+  for (const dep of ['codemirror', '@codemirror/language', '@codemirror/lint', '@codemirror/state', '@codemirror/view']) {
+    assert(pkg.includes(`"${dep}"`), `缺少依赖 ${dep}`);
+  }
 });
 
 check('子路径配置', () => {

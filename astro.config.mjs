@@ -58,6 +58,10 @@ export default defineConfig({
             { label: '文法与能力对照', link: '/grammar/' },
           ],
         },
+        {
+          label: '交互',
+          items: [{ label: '在线尝试', link: '/try/' }],
+        },
       ],
     }),
   ],
