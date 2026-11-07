@@ -1,0 +1,12 @@
+{
+  "search.label": "搜索",
+  "tableOfContents.onThisPage": "本页目录",
+  "tableOfContents.overview": "概览",
+  "page.previousLink": "上一页",
+  "page.nextLink": "下一页",
+  "404.text": "页面未找到。请检查地址，或使用搜索栏查找。",
+  "aside.note": "说明",
+  "aside.tip": "提示",
+  "aside.caution": "注意",
+  "aside.danger": "警告"
+}

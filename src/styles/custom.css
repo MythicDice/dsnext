@@ -1,0 +1,357 @@
+/* CQX 文档站视觉层级
+ *
+ * 原则：把对比度留给正文、代码示例和参数表；装饰性元素（侧栏选中、
+ * 分页卡片、提示块、链接颜色）统一收敛为细线、留白与字重。
+ *
+ * Starlight 自带样式位于 @layer starlight.* 中，本文件不分层，优先级更高。
+ * 组件 scoped 样式的选择器带哈希类，下方对应规则提高了特异性。
+ */
+
+/* ------------------------------------------------------------------
+   1. 排版尺度与字体
+   默认 h1/h2/h3 为 35/29/24px，三级标题全部靠放大争夺注意力。
+   改为 30/22/17px，章节层级改由分割线与留白承担。
+   ------------------------------------------------------------------ */
+:root {
+  --sl-font: 'Noto Sans CJK SC', 'Source Han Sans SC', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
+  --sl-font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code',
+    Consolas, 'Liberation Mono', 'Noto Sans Mono CJK SC', monospace;
+
+  --sl-text-h1: 1.875rem;
+  --sl-text-h2: 1.375rem;
+  --sl-text-h3: 1.0625rem;
+  --sl-text-h4: 1rem;
+  --sl-text-h5: 0.9375rem;
+  --sl-text-h6: 0.9375rem;
+  --sl-text-body: 1rem;
+  --sl-text-code: 0.875rem;
+  --sl-text-code-sm: 0.8125rem;
+
+  --sl-line-height: 1.8;
+  --sl-line-height-headings: 1.35;
+  --sl-content-width: 46rem;
+  --sl-content-gap-y: 1.1rem;
+}
+
+/* ------------------------------------------------------------------
+   2. 配色：低饱和中性色，强调色只用于链接、指示线与锚点
+   浅色同时写在 :root 与 [data-theme='light']，避免主题脚本执行前闪现高对比深色。
+   ------------------------------------------------------------------ */
+:root,
+html:root[data-theme='light'] {
+  --sl-color-white: #171a1d;
+  --sl-color-gray-1: #2b3035;
+  --sl-color-gray-2: #555c63;
+  --sl-color-gray-3: #7c8288;
+  --sl-color-gray-4: #a7acb0;
+  --sl-color-gray-5: #dfe2e3;
+  --sl-color-gray-6: #f4f5f5;
+  --sl-color-black: #ffffff;
+
+  --sl-color-orange-low: #f7f2e9;
+  --sl-color-orange: #b07a33;
+  --sl-color-orange-high: #7a521f;
+  --sl-color-green-low: #eef3ee;
+  --sl-color-green: #4f7a5e;
+  --sl-color-green-high: #31513c;
+  --sl-color-blue-low: #eef2f4;
+  --sl-color-blue: #4a7689;
+  --sl-color-blue-high: #2c4c5a;
+  --sl-color-purple-low: #f2f0f5;
+  --sl-color-purple: #6f6a91;
+  --sl-color-purple-high: #454261;
+  --sl-color-red-low: #f8eeee;
+  --sl-color-red: #a45a5a;
+  --sl-color-red-high: #713b3b;
+
+  --sl-color-accent-low: #eaf1f2;
+  --sl-color-accent: #3f6f7e;
+  --sl-color-accent-high: #264b57;
+
+  --sl-color-text: #2b3036;
+  --sl-color-text-accent: #2c5c6b;
+  --sl-color-text-invert: #ffffff;
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #fbfbfa;
+  --sl-color-bg-sidebar: #fbfbfa;
+  --sl-color-bg-inline-code: #f1f3f3;
+  --sl-color-bg-accent: #2c5c6b;
+  --sl-color-hairline: #e4e7e7;
+  --sl-color-hairline-light: #eceeee;
+  --sl-color-hairline-shade: #f5f6f6;
+  --sl-color-backdrop-overlay: rgb(23 26 29 / 45%);
+
+  --sl-shadow-sm: none;
+  --sl-shadow-md: none;
+  --sl-shadow-lg: 0 12px 32px rgb(23 26 29 / 12%);
+}
+
+/* 手动切到暗色时同样保持低刺激，不回退到默认高饱和蓝色 */
+html:root[data-theme='dark'] {
+  --sl-color-white: #e6e8e6;
+  --sl-color-gray-1: #cfd2cf;
+  --sl-color-gray-2: #a9adaa;
+  --sl-color-gray-3: #828783;
+  --sl-color-gray-4: #5c605d;
+  --sl-color-gray-5: #33373a;
+  --sl-color-gray-6: #24282b;
+  --sl-color-black: #171a1c;
+
+  --sl-color-accent-low: #22343a;
+  --sl-color-accent: #6f9aa8;
+  --sl-color-accent-high: #a7c9d2;
+
+  --sl-color-text: #c7cac6;
+  --sl-color-text-accent: #92bcca;
+  --sl-color-text-invert: #171a1c;
+  --sl-color-bg: #171a1c;
+  --sl-color-bg-nav: #1c2022;
+  --sl-color-bg-sidebar: #1c2022;
+  --sl-color-bg-inline-code: #24282b;
+  --sl-color-bg-accent: #6f9aa8;
+  --sl-color-hairline: #2d3134;
+  --sl-color-hairline-light: #2d3134;
+  --sl-color-hairline-shade: #1c2022;
+}
+
+body {
+  letter-spacing: 0.005em;
+}
+
+::selection {
+  background: var(--sl-color-accent-low);
+}
+
+/* ------------------------------------------------------------------
+   3. 正文层级
+   ------------------------------------------------------------------ */
+.sl-markdown-content {
+  font-size: var(--sl-text-body);
+  text-wrap: pretty;
+}
+
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--sl-color-white);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Starlight 把标题包在 .sl-heading-wrapper 内并设为 inline，
+   章节分割线必须加在包裹层上（用现成的 level-h2 类，无需 :has()）。 */
+.sl-markdown-content .sl-heading-wrapper.level-h2 {
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+  padding-bottom: 0.55rem;
+}
+
+.sl-markdown-content h3 {
+  color: var(--sl-color-gray-1);
+}
+
+/* 锚点图标不使用链接色与下划线；触屏设备上也保持低存在感 */
+.sl-markdown-content .sl-anchor-link {
+  color: var(--sl-color-gray-4);
+  text-decoration: none;
+}
+
+@media (hover: none) {
+  .sl-markdown-content .sl-anchor-link {
+    opacity: 0.5;
+  }
+}
+
+.sl-markdown-content strong {
+  color: var(--sl-color-gray-1);
+  font-weight: 600;
+}
+
+.sl-markdown-content :is(ol, ul) > li::marker {
+  color: var(--sl-color-gray-3);
+}
+
+/* 链接：用细下划线代替满屏亮蓝，hover 才加深 */
+.sl-markdown-content a {
+  color: var(--sl-color-text-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-color: color-mix(in srgb, var(--sl-color-text-accent) 38%, transparent);
+}
+
+.sl-markdown-content a:hover {
+  color: var(--sl-color-text-accent);
+  text-decoration-color: currentColor;
+}
+
+/* 行内代码：浅底细边框，不再用强调色 */
+.sl-markdown-content :not(pre) > code {
+  background-color: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline-light);
+  border-radius: 4px;
+  color: var(--sl-color-gray-1);
+  font-size: 0.875em;
+  padding: 0.1em 0.35em;
+}
+
+/* 代码块内部的 code 由 Expressive Code 自行着色，此处不重置 */
+
+/* ------------------------------------------------------------------
+   4. 代码示例与参数表：真正需要突出的内容
+   ------------------------------------------------------------------ */
+.sl-markdown-content .expressive-code {
+  margin-block: 1.4rem;
+}
+
+.expressive-code .frame {
+  border: 1px solid var(--sl-color-hairline) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.expressive-code pre {
+  font-size: var(--sl-text-code);
+  line-height: 1.7;
+}
+
+.sl-markdown-content table {
+  border-collapse: collapse;
+  border-top: 1px solid var(--sl-color-hairline);
+  font-size: 0.9375rem;
+  width: 100%;
+}
+
+.sl-markdown-content :is(th, td) {
+  border-bottom: 1px solid var(--sl-color-hairline);
+  line-height: 1.65;
+  padding: 0.6rem 0.75rem;
+}
+
+.sl-markdown-content :is(th:first-child, td:first-child) {
+  padding-inline-start: 0.75rem;
+}
+
+.sl-markdown-content th {
+  background: color-mix(in srgb, var(--sl-color-gray-5) 55%, var(--sl-color-bg));
+  border-bottom: 1px solid var(--sl-color-gray-4);
+  color: var(--sl-color-gray-1);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.sl-markdown-content tr:hover td {
+  background: color-mix(in srgb, var(--sl-color-gray-6) 55%, transparent);
+}
+
+/* ------------------------------------------------------------------
+   5. 提示块 / 引用块：去掉彩色粗边框与彩色图标
+   ------------------------------------------------------------------ */
+.starlight-aside,
+.starlight-aside--note,
+.starlight-aside--tip,
+.starlight-aside--caution,
+.starlight-aside--danger {
+  --sl-color-asides-border: var(--sl-color-accent);
+  --sl-color-asides-text-accent: var(--sl-color-text-accent);
+  background: var(--sl-color-gray-6);
+  border-inline-start: 2px solid var(--sl-color-accent);
+  border-radius: 0 6px 6px 0;
+  color: var(--sl-color-text);
+  font-size: 0.9375rem;
+  padding: 0.85rem 1.1rem;
+}
+
+.starlight-aside__title {
+  color: var(--sl-color-gray-1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.starlight-aside__icon {
+  display: none;
+}
+
+.sl-markdown-content blockquote {
+  background: var(--sl-color-gray-6);
+  border-inline-start: 2px solid var(--sl-color-accent);
+  border-radius: 0 6px 6px 0;
+  color: var(--sl-color-text);
+  padding: 0.7rem 1.1rem;
+}
+
+.sl-markdown-content blockquote > p:first-child > strong:first-child {
+  color: var(--sl-color-text-accent);
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+}
+
+/* ------------------------------------------------------------------
+   6. 侧边栏 / 顶栏：选中态改为细指示线，去掉整块高亮
+   ------------------------------------------------------------------ */
+.site-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.sidebar .sidebar-content .large,
+.sidebar .sidebar-content .group-label {
+  color: var(--sl-color-gray-3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.sidebar .sidebar-content a {
+  color: var(--sl-color-gray-2);
+}
+
+.sidebar .sidebar-content a:hover,
+.sidebar .sidebar-content a:focus {
+  background: transparent;
+  color: var(--sl-color-gray-1);
+}
+
+.sidebar .sidebar-content a[aria-current='page'],
+.sidebar .sidebar-content a[aria-current='page']:hover,
+.sidebar .sidebar-content a[aria-current='page']:focus {
+  background: transparent;
+  box-shadow: inset 2px 0 0 var(--sl-color-accent);
+  color: var(--sl-color-text-accent);
+  font-weight: 600;
+}
+
+.right-sidebar a {
+  color: var(--sl-color-gray-3);
+  font-size: 0.8125rem;
+}
+
+/* ------------------------------------------------------------------
+   7. 上/下页卡片：默认 24px 标题 + 阴影过于抢眼
+   ------------------------------------------------------------------ */
+div.pagination-links a {
+  background: transparent;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 8px;
+  box-shadow: none;
+  color: var(--sl-color-gray-2);
+  padding: 0.8rem 1rem;
+}
+
+div.pagination-links a:hover {
+  background: var(--sl-color-gray-6);
+  border-color: var(--sl-color-gray-4);
+}
+
+div.pagination-links .link-title {
+  color: var(--sl-color-gray-1);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.sl-anchor-link {
+  color: var(--sl-color-gray-4);
+}
